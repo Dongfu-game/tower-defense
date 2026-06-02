@@ -80,7 +80,7 @@ class Enemy {
     this.pathIndex = 1;
     this.isBoss = isBoss;
 
-    const normalHp = Math.floor(15 * Math.pow(1.25, stage - 1));
+    const normalHp = Math.floor(15 * Math.pow(1.20, stage - 1));
     this.maxHp = isBoss ? normalHp * BOSS_HP_MULTIPLIER : normalHp;
     this.hp = this.maxHp;
 
@@ -231,7 +231,7 @@ class Tower {
     this.level++;
 
     if (!this.type.slow) {
-      this.damage *= 1.08;
+      this.damage *= 1.12;
     }
 
     if (this.level % 10 === 0) {
