@@ -1,0 +1,172 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #111827;
+  color: white;
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  overflow-x: hidden;
+}
+
+#gameWrap {
+  width: 100%;
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 8px;
+  text-align: center;
+}
+
+h1 {
+  margin: 8px 0 10px;
+  font-size: 28px;
+  text-align: center;
+}
+
+/* 상단 정보창 */
+#ui,
+#topPanel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+
+  background: #1f2937;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+
+  font-size: 14px;
+  gap: 8px;
+}
+
+#ui span,
+#topPanel span {
+  white-space: nowrap;
+}
+
+/* 버튼 영역 */
+#buttons,
+#buttonPanel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+button,
+#buttonPanel button,
+#buttons button {
+  min-width: 150px;
+  max-width: 260px;
+
+  padding: 10px 12px;
+  margin: 0;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #374151;
+  color: white;
+
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 15px;
+
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+button:hover {
+  background: #4b5563;
+}
+
+/* 게임 화면 */
+canvas,
+#gameCanvas {
+  display: block;
+
+  width: 100%;
+  max-width: 900px;
+  height: auto;
+
+  margin: 0 auto;
+
+  background: #0f172a;
+  border: 3px solid #374151;
+  border-radius: 12px;
+}
+
+/* 하단 정보 */
+#info {
+  width: 100%;
+  max-width: 900px;
+
+  background: #1f2937;
+  margin: 8px auto 0;
+  padding: 8px;
+  border-radius: 10px;
+
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: left;
+}
+
+details {
+  background: #1e293b;
+  color: white;
+
+  padding: 8px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+summary {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#selectedInfo {
+  background: #111827;
+  color: #facc15;
+
+  padding: 8px;
+  border-radius: 10px;
+  margin: 0;
+
+  font-weight: bold;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 22px;
+    margin: 6px 0;
+  }
+
+  #ui,
+  #topPanel {
+    font-size: 12px;
+    padding: 8px;
+    gap: 6px;
+  }
+
+  button,
+  #buttonPanel button,
+  #buttons button {
+    min-width: 110px;
+    max-width: 32%;
+    font-size: 12px;
+    padding: 8px 6px;
+  }
+
+  #info {
+    font-size: 12px;
+  }
+}
