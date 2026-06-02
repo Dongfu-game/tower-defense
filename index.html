@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>랜덤 타워 디펜스</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div id="gameWrap">
+
+    <h1>🎯 랜덤 타워 디펜스</h1>
+
+    <div id="topPanel">
+      <span>🌊 스테이지 : <strong id="stage">1</strong></span>
+      <span>💰 코인 : <strong id="coins">50</strong></span>
+      <span>👾 필드 적 : <strong id="escaped">0</strong></span>
+      <span>📦 남은 적 : <strong id="remaining">100</strong></span>
+      <span>⏳ <strong id="timer">대기</strong></span>
+    </div>
+
+    <div id="buttonPanel">
+      <button id="buildBtn">랜덤 타워 건설 - 50코인</button>
+      <button id="upgradeBtn">선택 타워 업그레이드</button>
+      <button id="startBtn">▶ 스테이지 시작</button>
+      <button id="saveBtn">💾 저장</button>
+      <button id="loadBtn">📂 불러오기</button>
+    </div>
+
+    <canvas id="gameCanvas" width="900" height="600"></canvas>
+
+    <div id="info">
+      <details>
+        <summary>게임 설명 보기</summary>
+
+        <p>
+          🔵 장거리 (+사거리)<br>
+          🟢 기본 (+공속)<br>
+          🔴 강력 (+치명타)<br>
+          🟠 범위 (+폭발범위)<br>
+          🟣 슬로우 (+대상수)<br>
+          🟡 독 (+지속시간)
+        </p>
+
+        <p>
+          👑 보스 : 5스테이지마다 등장<br>
+          💰 보상 : 50 + 스테이지 × 10
+        </p>
+
+        <p>
+          🎁 시작 시 기본 타워 지급<br>
+          🏗️ 타워 건설 비용 : 50코인<br>
+          💾 저장 / 📂 불러오기 가능<br>
+          ⏱️ 전투시간 : 60초<br>
+          🛠️ 준비시간 : 30초<br>
+          ☠️ 적 300마리 이상 시 게임오버
+        </p>
+      </details>
+
+      <p id="selectedInfo">선택된 타워 없음</p>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
