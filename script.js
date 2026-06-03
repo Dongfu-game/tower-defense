@@ -9,7 +9,7 @@ const timerEl = document.getElementById("timer");
 const selectedInfoEl = document.getElementById("selectedInfo");
 
 const buildBtn = document.getElementById("buildBtn");
-const upgradeBtn = document.getElementById("upgradeBtn");
+const mergeBtn = document.getElementById("mergeBtn");
 const startBtn = document.getElementById("startBtn");
 
 const saveBtn = document.getElementById("saveBtn");
@@ -25,8 +25,9 @@ let enemies = [];
 let towers = [];
 let bullets = [];
 let selectedTower = null;
+let selectedTower2 = null;
 
-let enemiesToSpawn = 100;
+let enemiesToSpawn = 0;
 let bossToSpawn = 0;
 let spawnTimer = 0;
 let stageTimerInterval = null;
@@ -38,30 +39,31 @@ const SPAWN_INTERVAL = 30;
 
 const BOSS_INTERVAL = 5;
 const BOSS_HP_MULTIPLIER = 40;
+const MERGE_DAMAGE_MULTIPLIER = 1.35;
 
 const path = [
-  { x: 150, y: 90 },
-  { x: 750, y: 90 },
-  { x: 750, y: 470 },
-  { x: 150, y: 470 }
+  { x: 200, y: 60 },
+  { x: 750, y: 60 },
+  { x: 750, y: 590 },
+  { x: 200, y: 590 }
 ];
 
 const towerSpots = [
-  { x: 250, y: 150 },
-  { x: 380, y: 150 },
-  { x: 520, y: 150 },
-  { x: 650, y: 150 },
+  { x: 280, y: 130 },
+  { x: 420, y: 130 },
+  { x: 560, y: 130 },
+  { x: 680, y: 130 },
 
-  { x: 250, y: 270 },
-  { x: 650, y: 270 },
+  { x: 280, y: 260 },
+  { x: 680, y: 260 },
 
-  { x: 250, y: 390 },
-  { x: 650, y: 390 },
+  { x: 280, y: 390 },
+  { x: 680, y: 390 },
 
-  { x: 250, y: 510 },
-  { x: 380, y: 510 },
-  { x: 520, y: 510 },
-  { x: 650, y: 510 }
+  { x: 280, y: 510 },
+  { x: 420, y: 510 },
+  { x: 560, y: 510 },
+  { x: 680, y: 510 }
 ];
 
 const towerTypes = [
@@ -72,6 +74,25 @@ const towerTypes = [
   { name: "슬로우", color: "#a855f7", damage: 0, range: 130, fireRate: 10, area: false, slow: true, poison: false },
   { name: "독", color: "#84cc16", damage: 1, range: 120, fireRate: 7, area: false, slow: false, poison: true }
 ];
+const towerImages = {};
+
+towerImages["장거리"] = new Image();
+towerImages["장거리"].src = "tower_long.png";
+
+towerImages["기본"] = new Image();
+towerImages["기본"].src = "tower_basic.png";
+
+towerImages["강력"] = new Image();
+towerImages["강력"].src = "tower_power.png";
+
+towerImages["범위"] = new Image();
+towerImages["범위"].src = "tower_area.png";
+
+towerImages["슬로우"] = new Image();
+towerImages["슬로우"].src = "tower_slow.png";
+
+towerImages["독"] = new Image();
+towerImages["독"].src = "tower_poison.png";
 
 class Enemy {
   constructor(isBoss = false) {
@@ -92,6 +113,7 @@ class Enemy {
 
     this.poisonDamage = 0;
     this.poisonTimer = 0;
+    this.poisonStacks = 0;
   }
 
   update() {
@@ -99,9 +121,15 @@ class Enemy {
     if (this.slowTimer > 0) this.slowTimer--;
 
     if (this.poisonTimer > 0) {
-      this.hp -= this.poisonDamage / 60;
-      this.poisonTimer--;
-    }
+
+  this.hp -= this.poisonStacks / 60;
+
+  this.poisonTimer--;
+
+  if (this.poisonTimer <= 0) {
+    this.poisonStacks = 0;
+  }
+}
 
     const target = path[this.pathIndex] || path[0];
     const dx = target.x - this.x;
@@ -139,6 +167,15 @@ class Enemy {
 
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     ctx.fill();
+    
+    ctx.fillStyle = "#111";
+ctx.font = "10px Arial";
+ctx.textAlign = "center";
+ctx.fillText(
+  this.poisonStacks,
+  this.x,
+  this.y + 3
+);
 
     const barWidth = this.isBoss ? 44 : 24;
     const barHeight = this.isBoss ? 6 : 4;
@@ -223,25 +260,6 @@ class Tower {
     }
   }
 
-  upgrade() {
-    if (this.level >= MAX_LEVEL) return false;
-    if (coins < this.upgradeCost) return false;
-
-    coins -= this.upgradeCost;
-    this.level++;
-
-    if (!this.type.slow) {
-      this.damage *= 1.12;
-    }
-
-    if (this.level % 10 === 0) {
-      this.applyLevelBonus();
-    }
-
-    this.upgradeCost = Math.ceil(this.upgradeCost * 1.08);
-
-    return true;
-  }
 
   applyLevelBonus() {
     if (this.type.name === "장거리") {
@@ -272,15 +290,35 @@ class Tower {
   draw() {
     const size = 16 + Math.floor(this.level / 25) * 3;
 
-    ctx.beginPath();
-    ctx.fillStyle = this.type.color;
-    ctx.arc(this.x, this.y, size, 0, Math.PI * 2);
-    ctx.fill();
+    let imgSize = 130;
+
+if (this.type.name === "기본") imgSize = 130;
+if (this.type.name === "장거리") imgSize = 130;
+if (this.type.name === "강력") imgSize = 130;
+
+if (this.type.name === "범위") imgSize = 105;
+if (this.type.name === "슬로우") imgSize = 100;
+if (this.type.name === "독") imgSize = 100;
+
+ctx.drawImage(
+  towerImages[this.type.name],
+  this.x - imgSize / 2,
+  this.y - imgSize / 2,
+  imgSize,
+  imgSize
+);
 
     if (this === selectedTower) {
       ctx.beginPath();
       ctx.strokeStyle = "#facc15";
       ctx.lineWidth = 2;
+      ctx.arc(this.x, this.y, this.range, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    if (this === selectedTower2) {
+      ctx.beginPath();
+      ctx.strokeStyle = "#22c55e";
+      ctx.lineWidth = 3;
       ctx.arc(this.x, this.y, this.range, 0, Math.PI * 2);
       ctx.stroke();
     }
@@ -331,10 +369,15 @@ class Bullet {
     }
 
     if (this.tower.type.poison) {
-      const poisonDuration = 180 + Math.floor(this.tower.level / 10) * 60;
-      this.target.poisonDamage = finalDamage;
-      this.target.poisonTimer = poisonDuration;
-      this.target.hp -= finalDamage;
+      const poisonDuration =
+  180 + Math.floor(this.tower.level / 10) * 60;
+
+this.target.poisonStacks =
+  Math.min(10, this.target.poisonStacks + 1);
+
+this.target.poisonTimer = poisonDuration;
+
+this.target.hp -= finalDamage;
     } else if (this.tower.type.area) {
       for (const enemy of enemies) {
         if (getDistance(this.target, enemy) <= this.tower.explosionRadius) {
@@ -362,17 +405,31 @@ function giveStartingTower() {
   const startSpot = towerSpots[4];
   const basicType = towerTypes[1];
 
-  const tower = new Tower(startSpot.x, startSpot.y, basicType);
+  const tower = new Tower(
+    startSpot.x,
+    startSpot.y,
+    basicType
+  );
+
   towers.push(tower);
+
   selectedTower = tower;
+  selectedTower2 = null;
 }
 
 function startStage() {
   phase = "battle";
   timer = 60;
   prepareTimer = 30;
-  enemiesToSpawn = 100;
-  bossToSpawn = stage % BOSS_INTERVAL === 0 ? 1 : 0;
+
+  // 핵심: 100으로 덮어쓰기 X, 기존 남은 적에 +100 추가
+  enemiesToSpawn += 100;
+
+  // 보스도 5스테이지마다 누른 만큼 추가
+  if (stage % BOSS_INTERVAL === 0) {
+    bossToSpawn += 1;
+  }
+
   spawnTimer = SPAWN_INTERVAL - 1;
 
   clearInterval(stageTimerInterval);
@@ -461,15 +518,41 @@ function buildTower() {
   selectedTower = tower;
 }
 
-function upgradeSelectedTower() {
-  if (!selectedTower) {
-    alert("업그레이드할 타워를 선택하세요.");
+function mergeTowers() {
+  if (!selectedTower || !selectedTower2) {
+    alert("합성할 타워 2개를 선택하세요.");
     return;
   }
 
-  if (!selectedTower.upgrade()) {
-    alert("코인이 부족하거나 최대 레벨입니다.");
+  if (selectedTower.type.name !== selectedTower2.type.name) {
+    alert("같은 종류의 타워만 합성할 수 있습니다.");
+    return;
   }
+
+  if (selectedTower.level !== selectedTower2.level) {
+    alert("같은 레벨의 타워만 합성할 수 있습니다.");
+    return;
+  }
+
+  if (selectedTower.level >= MAX_LEVEL) {
+    alert("이미 최대 레벨입니다.");
+    return;
+  }
+
+  selectedTower.level++;
+
+  if (!selectedTower.type.slow) {
+    selectedTower.damage *= MERGE_DAMAGE_MULTIPLIER;
+  }
+
+  if (selectedTower.level % 10 === 0) {
+    selectedTower.applyLevelBonus();
+  }
+
+  removeFromArray(towers, selectedTower2);
+  selectedTower2 = null;
+
+  alert("합성 성공!");
 }
 
 function checkDeadEnemies() {
@@ -504,8 +587,9 @@ function resetGame() {
   towers = [];
   bullets = [];
   selectedTower = null;
+  selectedTower2 = null;
 
-  enemiesToSpawn = 100;
+  enemiesToSpawn = 0;
   bossToSpawn = 0;
   spawnTimer = 0;
 
@@ -528,7 +612,6 @@ function saveGame() {
       range: tower.range,
       fireRate: tower.fireRate,
 
-      upgradeCost: tower.upgradeCost,
       critChance: tower.critChance,
       explosionRadius: tower.explosionRadius
     }))
@@ -562,12 +645,13 @@ function loadGame() {
   towers = [];
 
   selectedTower = null;
+  selectedTower2 = null;
 
   phase = "ready";
   timer = 60;
   prepareTimer = 30;
 
-  enemiesToSpawn = 100;
+  enemiesToSpawn = 0;
   bossToSpawn = 0;
   spawnTimer = 0;
 
@@ -592,7 +676,6 @@ function loadGame() {
     tower.range = savedTower.range;
     tower.fireRate = savedTower.fireRate;
 
-    tower.upgradeCost = savedTower.upgradeCost;
     tower.critChance = savedTower.critChance;
     tower.explosionRadius = savedTower.explosionRadius;
 
@@ -614,14 +697,24 @@ function selectTowerByClick(e) {
   const mouseX = (e.clientX - rect.left) * scaleX;
   const mouseY = (e.clientY - rect.top) * scaleY;
 
-  selectedTower = null;
-
   for (const tower of towers) {
-    if (getDistance({ x: mouseX, y: mouseY }, tower) < 24) {
-      selectedTower = tower;
-      break;
+    if (getDistance({ x: mouseX, y: mouseY }, tower) < 35) {
+      if (!selectedTower) {
+        selectedTower = tower;
+        selectedTower2 = null;
+      } else if (!selectedTower2 && tower !== selectedTower) {
+        selectedTower2 = tower;
+      } else {
+        selectedTower = tower;
+        selectedTower2 = null;
+      }
+
+      return;
     }
   }
+
+  selectedTower = null;
+  selectedTower2 = null;
 }
 
 function drawPath() {
@@ -722,9 +815,13 @@ function updateUI() {
     selectedInfoEl.textContent =
       `${selectedTower.type.name} 타워 / Lv.${selectedTower.level} / ` +
       `공격력 ${selectedTower.damage.toFixed(1)} / ` +
-      `사거리 ${Math.floor(selectedTower.range)} / ` +
-      `업글비용 ${selectedTower.upgradeCost}코인` +
+      `사거리 ${Math.floor(selectedTower.range)}` +
       extraInfo;
+
+    if (selectedTower2) {
+      selectedInfoEl.textContent +=
+        ` | 합성대상: ${selectedTower2.type.name} Lv.${selectedTower2.level}`;
+    }
   } else {
     selectedInfoEl.textContent = "선택된 타워 없음";
   }
@@ -787,7 +884,7 @@ function removeFromArray(array, item) {
 }
 
 buildBtn.addEventListener("click", buildTower);
-upgradeBtn.addEventListener("click", upgradeSelectedTower);
+mergeBtn.addEventListener("click", mergeTowers);
 startBtn.addEventListener("click", nextStageNow);
 
 saveBtn.addEventListener("click", saveGame);
